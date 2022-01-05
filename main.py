@@ -1,6 +1,6 @@
 import steam, requests, json
-from secretKeys import STEAMAPIKEY
-KEY = STEAMAPIKEY
+from secretKeys import STEAMKEY
+KEY = STEAMKEY
 
 #URL = f"https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key={KEY}"
 
@@ -8,15 +8,23 @@ NEWURL = f"https://api.steampowered.com/IDOTA2Match_205790/GetMatchHistoryBySequ
 
 
 r = requests.get(NEWURL).json()
-
-i = 0
-
-for match in r["result"]["matches"]:
-    i += 1
-
-print(i)
+matches = r["result"]["matches"]
+data = json.load(open('database.json'))
 
 
+def playerExists(PlayerID):
+    return True if str(PlayerID) in data["users"] else False
 
-#with open('database.json', 'w') as outfile:
-    #json.dump(r, outfile)
+
+
+
+for match in matches:
+    for player in match["players"]:
+        playerID = player["account_id"]
+        if not playerExists(playerID):
+            data["users"][str(playerID)] = []
+
+
+
+with open('database.json', 'w') as outfile:
+    json.dump(data, outfile, indent = 4)
